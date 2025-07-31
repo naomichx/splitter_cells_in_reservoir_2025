@@ -27,20 +27,20 @@ from analysis.single_cell_analysis import find_splitter_cells_ANCOVA
 
 task = 'R-L' #'RR-LL', 'R-L'
 seed = 1
-simulation_mode = "data_esn"  # data, walls, esn, data_esn (controlled by data, but esn is still running)
-training_mode = 'offline' # offline, online
+simulation_mode = "esn"  # data, walls, esn, data_esn (controlled by data, but esn is still running)
+training_mode = 'online' # offline, online
 cues = False
-percentage_killed_neurons = 1 # set to 0 if no SC are killed, to 1 if all SC are killed
-save_reservoir_states = True
-save_bot_states = True
-save_decoding = True
-decoder = True  # place_cells, decision_cells, head_direction, None
+percentage_killed_neurons = 0 # set to 0 if no SC are killed, to 1 if all SC are killed
+save_reservoir_states = False
+save_bot_states = False
+save_decoding = False
+decoder = False  # place_cells, decision_cells, head_direction, None
 reservoir_in_decoder = False
 idx_kill = 0
 
 if __name__ == '__main__':
 
-    for seed in np.arange(10):
+    for seed in np.arange(1):
         if cues:
             path_to_save = 'data/' + task + '/cues/'
         else:
