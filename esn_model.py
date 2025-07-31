@@ -49,12 +49,13 @@ def split_train_test(input, output, nb_train, max_len_test=100000):
 
 
 class Model:
-    def __init__(self, seed, model_file, data_folder, save_reservoir_states, training_mode='offline',
+    def __init__(self, seed, model_file, data_folder, save_reservoir_states,simulation_mode,
                  percentage_killed_neurons=0, neurons_to_kill_file=None, decoder=True, reservoir_in_decoder=True,
                  connectivity=None, leak_rate=None, spectral_radius=None):
 
         self.model_file = model_file
         self.data_folder = data_folder
+        self.simulation_mode = simulation_mode
         self.save_reservoir_states = save_reservoir_states
 
         with open(os.path.join(os.path.dirname(__file__), model_file)) as f:
@@ -128,18 +129,8 @@ class Model:
 
         X_train, Y_train, X_test, Y_test = split_train_test(self.input, self.output, self.nb_train)
 
-        if training_mode == 'offline':
-            # Build model that predicts the next orientation.
-            readout = Ridge(ridge=regularization)
-            self.esn = self.reservoir >> readout
-
-        elif training_mode == 'online':
-            readout = FORCE()
-            self.esn = self.reservoir >> readout
-        else:
-            # Build model that predicts the next orientation.
-            readout = Ridge(ridge=regularization)
-            self.esn = self.reservoir >> readout
+        readout = Ridge(ridge=regularization)
+        self.esn = self.reservoir >> readout
 
         if self.cues:
             # Build model that predicts the next cues.
@@ -200,13 +191,10 @@ class Model:
                                 'orientation': accuracy_orientation,
                                 'decision': accuracy_decision}
 
-        if training_mode == 'offline':
+        if self.simulation_mode == 'esn':
             print('Offline training...')
             self.esn.fit(X_train, Y_train, warmup=warmup, reset=True)
 
-        elif training_mode == 'online':
-            print('Online training...')
-            self.esn.train(X_train, Y_train, reset=True)
         else:
             # No training but just activate the reservoir
             self.esn.fit(X_train[0], Y_train[0], reset=True)

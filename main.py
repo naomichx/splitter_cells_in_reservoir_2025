@@ -28,7 +28,6 @@ from analysis.single_cell_analysis import find_splitter_cells_ANCOVA
 task = 'R-L' #'RR-LL', 'R-L'
 seed = 1
 simulation_mode = "esn"  # data, walls, esn, data_esn (controlled by data, but esn is still running)
-training_mode = 'online' # offline, online
 cues = False
 percentage_killed_neurons = 0 # set to 0 if no SC are killed, to 1 if all SC are killed
 save_reservoir_states = False
@@ -68,21 +67,11 @@ if __name__ == '__main__':
                 print('Run the alternation task (R-L) ...')
                 if cues:
                     data_folder = "data/R-L/cues/"
-                    if training_mode == 'online':
-                        model_file = "model_settings/model_RL_cues_RLS.json"
-                    elif training_mode == 'offline':
-                        model_file = "model_settings/model_RL_cues.json"
-                    else:
-                        raise ValueError("Training mode {}".format(training_mode) + " is not recognized.")
+                    model_file = "model_settings/model_RL_cues.json"
+
                 else:
                     data_folder = 'data/R-L/no_cues/'
-                    if training_mode == 'online':
-                        model_file = "model_settings/model_RL_no_cues_RLS.json"
-                    elif training_mode == 'offline':
-                        model_file = "model_settings/model_RL_no_cues.json"
-                    else:
-                        raise ValueError('Error in defining training mode')
-
+                    model_file = "model_settings/model_RL_no_cues.json"
             elif task == 'RR-LL':
                 print('Run the half-alternation task (RR-LL) ...')
                 if cues:
@@ -97,7 +86,7 @@ if __name__ == '__main__':
 
         # Set up the experiment
         exp = Experiment(seed, model_file, data_folder, simulation_mode=simulation_mode,
-                         training_mode=training_mode, task=task, cues=cues,
+                         task=task, cues=cues,
                          save_reservoir_states=save_reservoir_states,
                          save_bot_states=save_bot_states, percentage_killed_neurons=percentage_killed_neurons,
                          neurons_to_kill_file=neurons_to_kill_file,

@@ -18,7 +18,7 @@ class Experiment:
     """
     This class run the experiment.
     """
-    def __init__(self, seed, model_file, data_folder, simulation_mode, training_mode,
+    def __init__(self, seed, model_file, data_folder, simulation_mode,
                  task, cues, save_reservoir_states, save_bot_states,
                  percentage_killed_neurons=0, neurons_to_kill_file=None, decoder=True,
                  reservoir_in_decoder=True, connectivity=None, leak_rate=None,spectral_radius=None):
@@ -49,7 +49,7 @@ class Experiment:
 
             self.model = Model(seed=seed, model_file=self.model_file, data_folder=self.data_folder,
                                save_reservoir_states=self.save_reservoir_states,
-                               training_mode=None, percentage_killed_neurons=percentage_killed_neurons,
+                               percentage_killed_neurons=percentage_killed_neurons,
                                neurons_to_kill_file=neurons_to_kill_file, decoder=decoder,
                                connectivity=connectivity, leak_rate=leak_rate,spectral_radius=spectral_radius)
             self.model.nb_train = 0
@@ -62,8 +62,9 @@ class Experiment:
             self.output = self.output.reshape(len(self.output), 1)
             self.input = np.load(self.data_folder + 'input.npy')
             self.model = Model(seed=seed,model_file=self.model_file, data_folder=self.data_folder,
+                               simulation_mode=simulation_mode,
                                save_reservoir_states=self.save_reservoir_states,
-                               training_mode=training_mode, percentage_killed_neurons=percentage_killed_neurons,
+                               percentage_killed_neurons=percentage_killed_neurons,
                                neurons_to_kill_file=neurons_to_kill_file,
                                decoder=decoder, reservoir_in_decoder=reservoir_in_decoder)
 
