@@ -1,0 +1,12 @@
+REVIEWER_RESPONSE_subspace_alignment.md
+REPORT_subspace_alignment.md
+result_report.md
+.DS_Store
+__pycache__/
+analysis/__pycache__/cca_core.cpython-310.pyc
+analysis/__pycache__/numpy_pca.cpython-310.pyc
+analysis/__pycache__/numpy_pls.cpython-310.pyc
+analysis/__pycache__/pwcca.cpython-310.pyc
+analysis/__pycache__/subspace_alignment.cpython-310.pyc
+analysis/reservoir_impulse_decay.py
+analysis/subspace_alignment.md
