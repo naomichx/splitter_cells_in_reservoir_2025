@@ -5,8 +5,6 @@ Compares task-relevant (potent) and null subspaces before and after each
 lesion iteration, following the Churchland-Shenoy null-space reorganisation
 framework.
 
-Terminology
------------
 potent subspace  :  task axis from CCA between LR and RL crossing activations
                     (cca_core; replaces μ_LR − μ_RL)
 null subspace    :  orthogonal complement of the potent direction
@@ -14,20 +12,6 @@ representation similarity : SVCCA + CCA / PWCCA / PLS (cca_core, pwcca, numpy_pl
 common neurons   :  neurons that survive all lesions up to iteration k
                     (always a subset of the original 5000; killed neurons are
                     zeroed in the weight matrices but stay in the arrays)
-
-Figures produced
-----------------
-  Figure 1 – LDA: LOO, 10-fold, and 5-fold stratified CV (LR vs RL)
-  Figure 2 – Potent-direction cosine similarity + full subspace alignment
-  Figure 3 – PWCCA similarity with iteration 0
-  Figure 5 – CCA summary stats (mean all coefs vs 98% threshold mean vs PWCCA)
-  Figure 6 – CCA coefficient spectrum (one seed)
-  Figure 7 – CCA projection of datapoints (one seed)
-  Figure 8 – PLS projection (one seed)
-  Figure 4 – SVD scatter in (CCA task axis, 1st null singular direction) for one seed
-  Figure 4b – CCA mode-1 projection grid (Fig 4 layout, Fig 7 content) per lesion iter
-
-See ../result_report.md for how to interpret each metric and figure.
 """
 
 import os
