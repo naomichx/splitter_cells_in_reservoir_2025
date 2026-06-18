@@ -144,21 +144,34 @@ class Model:
             #splitter_cells = np.load(neurons_to_kill_file)
             all_sc = []
             for file in neurons_to_kill_file:
-                all_sc.append(np.load(file))
-            splitter_cells = np.concatenate(all_sc)
+                sc = np.load(file)
+                if sc.size > 0:
+                    all_sc.append(np.asarray(sc, dtype=np.intp))
+            if all_sc:
+                splitter_cells = np.unique(np.concatenate(all_sc))
+            else:
+                splitter_cells = np.array([], dtype=np.intp)
             # Remove partially the splitter cells in the model without cues.
             num_to_kill = int(len(splitter_cells) * percentage_killed_neurons)
-            neurons_to_kill = np.random.choice(splitter_cells, num_to_kill, replace=False)
+            if num_to_kill > 0:
+                neurons_to_kill = np.random.choice(
+                    splitter_cells, num_to_kill, replace=False
+                ).astype(np.intp)
+            else:
+                neurons_to_kill = np.array([], dtype=np.intp)
 
             print('Number of neurons to kill:', len(neurons_to_kill))
             W = self.reservoir.params['W']#.todense()
             Win = self.reservoir.params['Win']
             Wbias = self.reservoir.params['bias']  # .todense()
 
-            W[neurons_to_kill, :] = 0
-            W[:, neurons_to_kill] = 0
-            Win[neurons_to_kill] = 0
-            Wbias[neurons_to_kill] = 0
+            if len(neurons_to_kill) > 0:
+                W[neurons_to_kill, :] = 0
+                W[:, neurons_to_kill] = 0
+                Win[neurons_to_kill] = 0
+                Wbias[neurons_to_kill] = 0
+            else:
+                print('No neurons to kill')
 
             self.reservoir.params['W'] = csr_matrix(W)
             self.reservoir.params['Win'] = Win
