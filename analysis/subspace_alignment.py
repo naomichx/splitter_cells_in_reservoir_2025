@@ -29,7 +29,6 @@ import cca_core
 import numpy_pls
 import pwcca
 
-# ── import helpers from single_cell_analysis ──────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib.util as _ilu
 _spec = _ilu.spec_from_file_location(
@@ -42,7 +41,6 @@ find_location_indexes_xy = _sca.find_location_indexes_xy
 find_activity_ranges    = _sca.find_activity_ranges
 get_average_activity    = _sca.get_average_activity
 
-# ── colours ───────────────────────────────────────────────────────────────────
 BLUE   = '#2E86AB'
 ORANGE = '#E07A5F'
 GREEN  = '#3BB273'
@@ -51,9 +49,7 @@ GREY   = '#B0B0B0'
 N_TOTAL = 3000   # total reservoir size (never changes)
 
 
-# =============================================================================
 #  1. DATA LOADING
-# =============================================================================
 
 def _iter_from_subdir(name):
     """Return iteration integer from a reservoir-states subfolder name."""
@@ -101,12 +97,6 @@ def build_condition_matrix(path, max_per_type=16):
 
     One row per LR/RL corridor crossing (mean activity over the crossing window).
 
-    Returns
-    -------
-    X : ndarray, shape (n_samples, N_TOTAL)
-    y : ndarray, shape (n_samples,)  — +1 LR, -1 RL
-    n_lr, n_rl : int
-        Number of LR / RL crossings used (for the ≥min_crossings validity gate).
     """
     res = load_reservoir_states(path)       # (T, N_TOTAL)
     pos = load_positions(path)
@@ -188,9 +178,7 @@ def _cca_weights_to_neurons(cacts, w_reduced):
     return (w / norm).astype(float)
 
 
-# =============================================================================
 #  2. ANALYSIS PRIMITIVES
-# =============================================================================
 
 def _balanced_lr_rl_acts(X, y, active_mask, seed=0):
     """Centered LR / RL activation matrices with matched column counts."""
@@ -341,9 +329,6 @@ def potent_cosine_similarity(d0, dk):
 def _principal_subspace_overlap(Xs0, Xsk, n_components=10):
     """
     Mean cos² principal angles between top-*k* subspaces (SVD, sample × feature).
-
-    Shared by :func:`subspace_alignment` (full neuron space) and
-    :func:`pca_subspace_overlap` (after SVCCA reduction).
     """
     Xs0 = Xs0 - Xs0.mean(axis=0)
     Xsk = Xsk - Xsk.mean(axis=0)
@@ -368,10 +353,6 @@ def subspace_alignment(X0, Xk, active_mask, n_components=10):
     in **neuron space** (right singular vectors of each condition matrix).
 
     Robust to different numbers of conditions per iteration.
-
-    Returns
-    -------
-    alignment : float  [0, 1]  –  1 = identical subspaces, 0 = orthogonal
     """
     return _principal_subspace_overlap(
         X0[:, active_mask], Xk[:, active_mask], n_components=n_components)
@@ -408,9 +389,6 @@ def within_task_direction(X, y, active_mask):
 
 def null_sv_direction(X, y, active_mask, task_direction=None, sv_index=0):
     """
-    ``sv_index``-th right singular direction after removing ``task_direction``.
-
-    If ``task_direction`` is omitted, uses :func:`within_task_direction`.
     """
     Xs = X[:, active_mask]
     Xc = Xs - Xs.mean(axis=0)
@@ -504,15 +482,6 @@ def svcca_similarity(X0, Xk, active_mask, threshold=0.98, match_rows=True,
       3. CCA on the right-singular-vector representations.
       4. Return mean CCA correlation coefficient.
 
-    Parameters
-    ----------
-    X0, Xk      : (n_cond, N_TOTAL)
-    active_mask : (N_TOTAL,) boolean
-    threshold   : cumulative variance threshold for SVD truncation
-
-    Returns
-    -------
-    similarity : float in [0, 1], or np.nan on failure
     """
     if match_rows:
         if y0 is not None and yk is not None:
@@ -557,9 +526,7 @@ def svcca_similarity(X0, Xk, active_mask, threshold=0.98, match_rows=True,
         return np.nan
 
 
-# =============================================================================
 #  2b. CCA-CORE (Raghu et al. tutorial / SVCCA notebooks)
-# =============================================================================
 
 def cca_core_pair_analysis(X0, Xk, active_mask, n_sv_dims=20,
                            epsilon=1e-10, threshold=0.98, verbose=False,
@@ -575,10 +542,6 @@ def cca_core_pair_analysis(X0, Xk, active_mask, n_sv_dims=20,
     With few corridor crossings, full neuron×datapoint CCA is ill-posed
     (more neurons than datapoints); SVCCA reduction is required.
 
-    Returns
-    -------
-    dict with keys ``mean_all``, ``mean_threshold``, ``sum_coef``,
-    ``n_sv_dims``, ``cca_coef1``; optionally ``results`` (full cca_core dict).
     """
     out = {
         'mean_all': np.nan,
@@ -662,8 +625,7 @@ def pls_pair_analysis(X0, Xk, active_mask, n_sv_dims=20):
 
 def pca_subspace_overlap(X0, Xk, active_mask, n_components=10, n_sv_dims=20):
     """
-    Top subspace overlap after SVCCA (SVD) reduction — same math as
-    :func:`subspace_alignment`, applied in the reduced (k × crossing) space.
+    Top subspace overlap after SVCCA (SVD) reduction 
     """
     a0 = _condition_to_acts(X0, active_mask)
     ak = _condition_to_acts(Xk, active_mask)
@@ -679,13 +641,6 @@ def pca_subspace_overlap(X0, Xk, active_mask, n_components=10, n_sv_dims=20):
 def cca_core_projection(results_dict, side='x'):
     """
     Project SVCCA-reduced activations onto CCA directions (tutorial notebook 003).
-
-    ``acts0`` / ``actsk`` must be the (k × n_datapoints) matrices used in
-    ``get_cca_similarity`` — not full neuron-space activations.
-
-    Returns
-    -------
-    proj : (n_components, n_datapoints)
     """
     res = results_dict['results']
     acts = results_dict['acts0'] if side == 'x' else results_dict['actsk']
@@ -725,11 +680,6 @@ def cca_first_mode_projections(X_ref, X_k, y_ref, y_k, active_mask,
     """
     First canonical CCA projection for iter ``ref`` vs ``k`` (tutorial notebook 003).
 
-    Returns
-    -------
-    proj_ref, proj_k : ndarray, shape (n_crossings,)
-    y_ref, y_k : aligned label vectors
-    ok : bool — False if CCA failed
     """
     X0, y0, Xk, yk = _align_condition_matrices(X_ref, y_ref, X_k, y_k, seed=seed)
     stats = cca_core_pair_analysis(
@@ -741,9 +691,7 @@ def cca_first_mode_projections(X_ref, X_k, y_ref, y_k, active_mask,
     return proj[0], projk[0], y0, yk, True
 
 
-# =============================================================================
 #  3. MAIN ANALYSIS LOOP
-# =============================================================================
 
 def _load_seed_lesion_data(seed_path, sc_dict, min_crossings=10, max_per_type=16):
     """Build condition matrices and kill masks for one seed."""
@@ -871,9 +819,7 @@ def run_analysis(root, exclude_seeds=None, min_crossings=10, max_per_type=16):
     return results
 
 
-# =============================================================================
 #  4. AGGREGATE HELPERS
-# =============================================================================
 
 def _aggregate(results, key, max_iter=None):
     """
@@ -951,11 +897,6 @@ def _populate_cca_projection_panels(axes, res, seed, ref_iter=0, n_sv_dims=20,
                                     iters_to_plot=None, ylabel='CCA direction 1'):
     """
     Draw CCA direction-1 projection scatters on a 2-D axes array (one panel per iter).
-
-    Projections use the first shared canonical direction between ``ref_iter`` and
-    each plotted iteration (``cca_first_mode_projections``).
-
-    Used by :func:`figure4_cca_projection_scatter`.
     """
     all_iters = list(res['iters'])
     if iters_to_plot is not None:
@@ -1034,7 +975,6 @@ def _populate_task_axis_projection_panels(axes, res, iters_to_plot, n_sv_dims=20
     """
     Crossing index vs projection onto the LR/RL task axis (``potent_direction``).
 
-    Used by :func:`figure_reviewer_composite` panel A.
     """
     all_iters = list(res['iters'])
     iters = [it for it in iters_to_plot if it in all_iters]
@@ -1087,7 +1027,6 @@ def _populate_null_scatter_panels(axes, res, iters_to_plot, ref_iter=0,
     **X:** task axis at each iteration (default LR/RL CCA direction 1).
     **Y:** projection onto iter-``ref_iter`` null SV1 (mean task removed at ref).
 
-    Used by :func:`figure4_svd_scatter` and :func:`figure_reviewer_composite`.
     """
     all_iters = list(res['iters'])
     iters = [it for it in iters_to_plot if it in all_iters]
@@ -1150,11 +1089,6 @@ def _cca_spectrum_from_results(results, seed, iter_k, n_sv_dims=20,
 def _aggregate_cca_spectrum_all(results, ref_iter=0, n_sv_dims=20):
     """
     Pool CCA spectra (ref_iter vs each post-ref iter) over all seeds.
-
-    Returns
-    -------
-    idx, means, stds : ndarray or (None, None, None) if no valid spectra
-    n_spectra : int — number of (seed, iter) pairs pooled
     """
     rows = []
     for seed in results:
@@ -1175,9 +1109,7 @@ def _aggregate_cca_spectrum_all(results, ref_iter=0, n_sv_dims=20):
     return idx, np.nanmean(mat, axis=0), np.nanstd(mat, axis=0), len(rows)
 
 
-# =============================================================================
 #  5. FIGURE FUNCTIONS
-# =============================================================================
 
 def figure1_lda(results, save_path=None):
     """Figure 1 — LOO, 10-fold, and 5-fold stratified LDA accuracy."""
@@ -1593,8 +1525,6 @@ def figure4_svd_scatter(results, seed=1, ref_iter=0, n_sv_dims=20,
 
     **X:** CCA task axis (``potent_direction``).
     **Y:** projection onto iter-``ref_iter`` null SV1 (mean task removed at ref).
-
-    LR → blue circles; RL → orange triangles.
     """
     if seed not in results:
         print(f'Seed {seed} not available in results.')
@@ -1637,8 +1567,6 @@ def figure4_cca_projection_scatter(results, seed=1, ref_iter=0, n_sv_dims=20,
 
     - **Iter 0:** projection of baseline crossings (ref side of CCA vs iter 1).
     - **Iter k ≥ 1:** projection of iter-*k* crossings (k side), same CCA basis.
-
-    Layout matches :func:`figure4_svd_scatter` (one panel per iteration).
     """
     if seed not in results:
         print(f'Seed {seed} not available in results.')
@@ -1696,10 +1624,6 @@ def figure4_cca_projection_scatter_from_root(
         {seed: res}, seed=seed, ref_iter=ref_iter, n_sv_dims=n_sv_dims,
         save_path=save_path)
 
-
-# =============================================================================
-#  6. MAIN
-# =============================================================================
 
 if __name__ == '__main__':
     ROOT = '../data/R-L/no_cues/3000_units_lr_04'
